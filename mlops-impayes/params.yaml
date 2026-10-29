@@ -1,0 +1,18 @@
+data:
+  hf_dataset: electricsheepafrica/africa-synth-telecom-telecom-credit-scoring-data-nigeria
+  raw_path: data/raw/telecom.csv
+  target: default_risk
+  drop_columns: []
+  test_size: 0.2
+  seed: 42
+train:
+  max_iter: 200
+  learning_rate: 0.1
+gate:
+  min_f1: 0.85
+  min_auc: 0.90
+monitoring:
+  psi_threshold: 0.2
+  f1_threshold: 0.80
+  latency_p95_s: 0.3
+  error_rate: 0.01

@@ -1,0 +1,12 @@
+stages:
+  prepare:
+    cmd: python -m src.data
+    deps: [src/data.py]
+    params: [data.hf_dataset, data.raw_path]
+    outs: [data/raw/telecom.csv]
+  train:
+    cmd: python -m src.train
+    deps: [src/train.py, data/raw/telecom.csv]
+    params: [data, train, gate]
+    outs: [models/model.joblib, models/meta.json, models/reference.csv]
+    metrics: [models/metrics.json]

@@ -1,0 +1,18 @@
+groups:
+  - name: ml-alerts
+    rules:
+      - alert: HighLatencyP95
+        expr: histogram_quantile(0.95, sum(rate(request_latency_seconds_bucket[5m])) by (le)) > 0.3
+        for: 5m
+        labels: {severity: warning}
+        annotations: {summary: "Latence p95 > 300 ms"}
+      - alert: HighErrorRate
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.01
+        for: 5m
+        labels: {severity: critical}
+        annotations: {summary: "Taux d'erreurs 5xx > 1 % (rollback)"}
+      - alert: DataDrift
+        expr: data_drift_psi_max > 0.2
+        for: 10m
+        labels: {severity: warning}
+        annotations: {summary: "PSI > 0,2: lancer le réentraînement candidat"}

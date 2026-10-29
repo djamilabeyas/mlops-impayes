@@ -1,0 +1,15 @@
+pandas>=2.0
+numpy>=1.24
+scikit-learn>=1.3
+joblib
+pyyaml
+datasets
+mlflow>=2.9
+dvc
+prefect>=2.14
+fastapi
+uvicorn[standard]
+prometheus-client
+httpx
+pytest
+ruff

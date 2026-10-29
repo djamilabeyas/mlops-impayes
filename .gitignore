@@ -6,3 +6,5 @@ mlruns/
 /models/reference.csv
 prediction_log.jsonl
 mlflow.db
+.pytest_cache/
+.ruff_cache/

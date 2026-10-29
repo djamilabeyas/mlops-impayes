@@ -10,7 +10,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.11", cache: pip}
-      - run: pip install -r requirements.txt && dvc pull
+      - run: pip install -r requirements.txt
+      - run: dvc pull || python -m src.data
       - run: python -m src.train
         env: {MLFLOW_TRACKING_URI: "${{ secrets.MLFLOW_TRACKING_URI }}"}
       - uses: actions/upload-artifact@v4

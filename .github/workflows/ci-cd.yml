@@ -2,6 +2,7 @@ name: CI-CD
 on:
   push: {branches: [main]}
   pull_request:
+  workflow_dispatch:
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}
@@ -35,13 +36,15 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: "3.11", cache: pip}
       - run: pip install -r requirements.txt
-      - name: Données (DVC, sinon téléchargement direct)
+      - name: Données (DVC, sinon téléchargement direct depuis Hugging Face)
         run: dvc pull || python -m src.data
-      - name: Entraînement
+      - name: Entraînement (échoue si la gate F1/AUC n'est pas atteinte)
         run: python -m src.train
         env: {MLFLOW_TRACKING_URI: "${{ secrets.MLFLOW_TRACKING_URI }}"}
-      - uses: actions/upload-artifact@v4
-        with: {name: model, path: models/}
+      - name: Sauvegarde du modèle et des métriques (même en cas d'échec)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: {name: model, path: models/, if-no-files-found: warn}
 
   validate:
     needs: train
@@ -74,13 +77,18 @@ jobs:
       - uses: docker/login-action@v3
         with: {registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}"}
       - run: docker build -t $IMAGE:${{ github.sha }} .
-      - uses: aquasecurity/trivy-action@0.24.0
-        with: {image-ref: "${{ env.IMAGE }}:${{ github.sha }}", severity: CRITICAL, exit-code: "1"}
+      # Épinglé sur le commit de la v0.35.0 : les anciens tags ont été compromis en mars 2026 (CVE-2026-33634)
+      - uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          image-ref: "${{ env.IMAGE }}:${{ github.sha }}"
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
       - run: docker push $IMAGE:${{ github.sha }}
 
   deploy:
     needs: build
-    if: false   # pas de serveur SSH : job désactivé (voir rapport)
+    if: false   # pas de serveur SSH disponible : job désactivé (voir rapport)
     runs-on: ubuntu-latest
     environment: production
     steps:

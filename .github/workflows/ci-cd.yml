@@ -27,7 +27,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: pytest -q --maxfail=1
 
-  train:
+    train:
     needs: test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -41,6 +41,42 @@ jobs:
       - name: Entraînement (échoue si la gate F1/AUC n'est pas atteinte)
         run: python -m src.train
         env: {MLFLOW_TRACKING_URI: "${{ secrets.MLFLOW_TRACKING_URI }}"}
+      - name: Résumé du registre MLflow
+        if: always()
+        continue-on-error: true
+        env: {MLFLOW_TRACKING_URI: "${{ secrets.MLFLOW_TRACKING_URI }}"}
+        run: |
+          python - <<'PY' >> $GITHUB_STEP_SUMMARY
+          import os, mlflow
+          from mlflow.tracking import MlflowClient
+          mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI") or "sqlite:///mlflow.db")
+          c = MlflowClient()
+          print("## Registre de modèles MLflow")
+          for m in c.search_registered_models():
+              print(f"**{m.name}** : alias {dict(m.aliases)}")
+              print("| Version | F1 | AUC | Commit |\n|---|---|---|---|")
+              for v in c.search_model_versions(f"name='{m.name}'"):
+                  r = c.get_run(v.run_id)
+                  print(f"| {v.version} | {r.data.metrics.get('f1', 0):.3f} | {r.data.metrics.get('auc', 0):.3f} | {r.data.tags.get('git_commit', '')} |")
+          PY
+      - name: Simulation de drift (preuve de détection)
+        if: always()
+        continue-on-error: true
+        run: |
+          python - <<'PY' >> $GITHUB_STEP_SUMMARY
+          import pandas as pd
+          from src.monitoring.drift import drift_report
+          ref = pd.read_csv("models/reference.csv")
+          cur = ref.copy()
+          num = ref.select_dtypes("number").nunique().idxmax()
+          cur[num] = cur[num] * 1.5
+          r = drift_report(ref, cur)
+          print("## Simulation de data drift (colonne " + num + " multipliée par 1,5)")
+          print("| Variable | PSI |\n|---|---|")
+          for k, v in sorted(r["psi"].items(), key=lambda x: -x[1]):
+              print(f"| {k} | {v:.3f} |")
+          print("\nDrift détecté :", r["drift_detected"], "- variables :", r["drifted_features"])
+          PY
       - name: Sauvegarde du modèle et des métriques (même en cas d'échec)
         if: always()
         uses: actions/upload-artifact@v4

@@ -5,6 +5,7 @@ joblib
 pyyaml
 datasets
 mlflow>=2.9,<3
+sqlalchemy>=2.0,<2.1  # MLflow 2 plante avec SQLAlchemy 2.1 (FallbackAsyncAdaptedQueuePool supprimé)
 dvc
 prefect>=2.14
 fastapi

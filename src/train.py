@@ -22,7 +22,7 @@ def build_pipeline(X: pd.DataFrame, p: dict):
         ("num", SimpleImputer(strategy="median"), num),
         ("cat", Pipeline([("imp", SimpleImputer(strategy="most_frequent")),
                           ("oh", OneHotEncoder(handle_unknown="ignore"))]), cat),
-    ])
+    ], sparse_threshold=0)  # sortie dense : HistGradientBoosting refuse les matrices creuses
     clf = HistGradientBoostingClassifier(
         max_iter=p["train"]["max_iter"], learning_rate=p["train"]["learning_rate"],
         class_weight="balanced", random_state=p["data"]["seed"])
@@ -49,10 +49,16 @@ def evaluate(pipe, X, y) -> dict:
             "auc": float(roc_auc_score(y, proba)),
             "confusion_matrix": confusion_matrix(y, pred).tolist()}
 
+def encode_target(s: pd.Series, positive_labels) -> pd.Series:
+    """Cible texte (low/medium/high) -> 1 si impayé, 0 sinon. Une cible déjà 0/1 est conservée."""
+    if positive_labels and not pd.api.types.is_numeric_dtype(s):
+        return s.astype(str).str.strip().str.lower().isin([str(v).lower() for v in positive_labels]).astype(int)
+    return s.astype(int)
+
 def train(df: pd.DataFrame, p: dict, track: bool = True, out_dir: str = "models") -> dict:
     target = p["data"]["target"]
-    df = df.drop(columns=p["data"].get("drop_columns", []))
-    X, y = df.drop(columns=[target]), df[target].astype(int)
+    df = df.drop(columns=[c for c in p["data"].get("drop_columns", []) if c in df.columns])
+    X, y = df.drop(columns=[target]), encode_target(df[target], p["data"].get("positive_labels"))
     Xtr, Xte, ytr, yte = train_test_split(
         X, y, test_size=p["data"]["test_size"], stratify=y, random_state=p["data"]["seed"])
     pipe, num, cat = build_pipeline(X, p)

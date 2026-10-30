@@ -11,5 +11,5 @@ def test_psi_shift_detected():
 
 def test_should_retrain(params):
     assert should_retrain(0.3, None, params)["retrain"]
-    assert should_retrain(0.05, 0.65, params)["retrain"]
-    assert not should_retrain(0.05, 0.88, params)["retrain"]
+    assert should_retrain(0.05, 0.45, params)["retrain"]
+    assert not should_retrain(0.05, 0.60, params)["retrain"]

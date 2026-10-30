@@ -14,3 +14,12 @@ def test_train_and_serve(df, params, tmp_path, monkeypatch):
             r = c.post("/predict", json={"features": row})
         assert r.status_code == 200 and 0 <= r.json()["default_risk_score"] <= 1
         assert c.post("/drift/check").status_code == 200
+
+
+def test_cible_texte(df, params, tmp_path):
+    d = df.copy()
+    d["default_risk"] = d["default_risk"].map({1: "high", 0: "low"})
+    d["customer_id"] = [f"CUST{i}" for i in range(len(d))]
+    res = train(d, params, track=False, out_dir=str(tmp_path))
+    assert "customer_id" not in res["meta"]["features"]
+    assert res["metrics"]["auc"] > 0.7

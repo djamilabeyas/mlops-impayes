@@ -2,7 +2,7 @@ FROM python:3.11-slim
 WORKDIR /app
 ENV PYTHONUNBUFFERED=1 MODEL_PATH=/app/models/model.joblib
 COPY requirements-api.txt .
-RUN pip install --no-cache-dir -r requirements-api.txt
+RUN pip install --no-cache-dir --retries 10 --timeout 120 -r requirements-api.txt
 COPY src ./src
 COPY params.yaml .
 COPY models ./models

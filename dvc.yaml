@@ -1,12 +1,20 @@
 stages:
   prepare:
     cmd: python -m src.data
-    deps: [src/data.py]
-    params: [data.hf_dataset, data.raw_path]
-    outs: [data/raw/telecom.csv]
+    deps: [src/data.py, src/config.py]
+    params: [data.hf_dataset, data.raw_path, data.target]
+    outs:
+      - data/raw/telecom.csv:
+          persist: true   # jeu brut conservé : pas de nouveau téléchargement à chaque exécution
   train:
     cmd: python -m src.train
-    deps: [src/train.py, data/raw/telecom.csv]
+    deps: [src/train.py, src/data.py, src/config.py, data/raw/telecom.csv]
     params: [data, train, gate]
-    outs: [models/model.joblib, models/meta.json, models/reference.csv]
-    metrics: [models/metrics.json]
+    outs:
+      - models/model.joblib
+      - models/reference.csv
+      - models/meta.json:
+          cache: false
+    metrics:
+      - models/metrics.json:
+          cache: false

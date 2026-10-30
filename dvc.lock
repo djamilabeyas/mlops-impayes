@@ -1,0 +1,81 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python -m src.data
+    deps:
+    - path: src/config.py
+      hash: md5
+      md5: 0a80755d50b349db6752dd6559387b85
+      size: 140
+    - path: src/data.py
+      hash: md5
+      md5: cc45e29f50522a0b39b9ec4dd3b0ab95
+      size: 1156
+    params:
+      params.yaml:
+        data.hf_dataset: 
+          electricsheepafrica/africa-synth-telecom-telecom-credit-scoring-data-nigeria
+        data.raw_path: data/raw/telecom.csv
+        data.target: default_risk
+    outs:
+    - path: data/raw/telecom.csv
+      hash: md5
+      md5: 3b13408c5fc88ebd4b7f3bf8ebfa8b3a
+      size: 51426327
+  train:
+    cmd: python -m src.train
+    deps:
+    - path: data/raw/telecom.csv
+      hash: md5
+      md5: 3b13408c5fc88ebd4b7f3bf8ebfa8b3a
+      size: 51426327
+    - path: src/config.py
+      hash: md5
+      md5: 0a80755d50b349db6752dd6559387b85
+      size: 140
+    - path: src/data.py
+      hash: md5
+      md5: cc45e29f50522a0b39b9ec4dd3b0ab95
+      size: 1156
+    - path: src/train.py
+      hash: md5
+      md5: 4851fdc2de08537ba3120c4862e35259
+      size: 5276
+    params:
+      params.yaml:
+        data:
+          hf_dataset: 
+            electricsheepafrica/africa-synth-telecom-telecom-credit-scoring-data-nigeria
+          raw_path: data/raw/telecom.csv
+          target: default_risk
+          positive_labels:
+          - high
+          drop_columns:
+          - customer_id
+          - phone_number
+          - assessment_date
+          test_size: 0.2
+          seed: 42
+        gate:
+          min_f1: 0.55
+          min_auc: 0.72
+        train:
+          max_iter: 200
+          learning_rate: 0.1
+    outs:
+    - path: models/meta.json
+      hash: md5
+      md5: a7896ee2573a534d87410d75f74eb5a2
+      size: 980
+    - path: models/metrics.json
+      hash: md5
+      md5: b46aad8fbd891408be6c6ae17b0bda2e
+      size: 230
+    - path: models/model.joblib
+      hash: md5
+      md5: 08836a7c02ccd8dccb791ac99652e189
+      size: 240522
+    - path: models/reference.csv
+      hash: md5
+      md5: 9eca9690d007c2af28541c646c941df8
+      size: 294473

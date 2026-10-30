@@ -27,7 +27,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: pytest -q --maxfail=1
 
-    train:
+  train:
     needs: test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -81,6 +81,15 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with: {name: model, path: models/, if-no-files-found: warn}
+      - name: Sauvegarde du registre de modèles MLflow
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlflow-registry
+          path: |
+            mlflow.db
+            mlruns/
+          if-no-files-found: warn
 
   validate:
     needs: train

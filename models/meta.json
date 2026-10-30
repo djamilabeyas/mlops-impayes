@@ -1,0 +1,50 @@
+{
+  "features": [
+    "operator",
+    "credit_score",
+    "credit_rating",
+    "tenure_months",
+    "avg_monthly_spend_ngn",
+    "recharge_frequency_per_month",
+    "payment_consistency_score",
+    "late_payment_count",
+    "account_type",
+    "loan_eligibility",
+    "max_loan_amount_ngn"
+  ],
+  "numeric": [
+    "credit_score",
+    "tenure_months",
+    "avg_monthly_spend_ngn",
+    "recharge_frequency_per_month",
+    "payment_consistency_score",
+    "late_payment_count",
+    "max_loan_amount_ngn"
+  ],
+  "categorical": [
+    "operator",
+    "credit_rating",
+    "account_type",
+    "loan_eligibility"
+  ],
+  "metrics": {
+    "precision": 0.49635176651305685,
+    "recall": 0.6968281067481356,
+    "f1": 0.5797480656374986,
+    "auc": 0.7464420960188802,
+    "confusion_matrix": [
+      [
+        62004,
+        15738
+      ],
+      [
+        6748,
+        15510
+      ]
+    ]
+  },
+  "gate_passed": true,
+  "commit": "56542a2",
+  "data_hash": "dadbf6ac0b83",
+  "version": "1"
+}

@@ -1,0 +1,14 @@
+.git
+.github
+.venv
+venv
+data
+mlruns
+mlflow.db
+docs
+notebooks
+tests
+**/__pycache__
+.pytest_cache
+.ruff_cache
+prediction_log.jsonl

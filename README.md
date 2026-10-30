@@ -21,15 +21,15 @@ docker compose up                     # API + MLflow + Prometheus + Grafana
 ## Correspondance avec les livrables
 | # | Livrable | Emplacement |
 |---|---|---|
-| 1 | Dépôt Git structuré | `src/`, `notebooks/`, `tests/`, `docs/`, `flows/` |
+| 1 | Dépôt Git structuré | `src/`, `notebooks/`, `tests/`, `flows/`, `scripts/`, `monitoring/`, `registry/`, `docs/` |
 | 2 | Données versionnées | `dvc.yaml`, `params.yaml`, prétraitements dans `src/train.py` |
-| 3 | Modèle et métriques | `models/model.joblib`, `models/metrics.json`, runs MLflow |
+| 3 | Modèle et métriques | `models/metrics.json`, `models/meta.json`, artefact `model` de chaque run GitHub Actions, runs MLflow |
 | 4 | API de serving | `src/api.py` (`/predict`, `/health`, `/drift/check`, `/docs`) |
 | 5 | Image Docker | `Dockerfile`, `docker-compose.yml` |
 | 6 | Pipeline CI/CD/CT | `.github/workflows/ci-cd.yml`, `ct.yml`, `flows/retrain_flow.py` |
-| 7 | Registre de modèles | MLflow Model Registry (alias `staging` / `production`) |
-| 8 | Dashboard monitoring | `monitoring/` (Prometheus, alertes, Grafana) |
-| 9 | Rapport | à rédiger (réponses, architecture, pipeline, monitoring, gouvernance) |
+| 7 | Registre de modèles | MLflow Model Registry `default-risk-model` (alias `staging` / `production`), export `registry/model_registry.json`, artefact `mlflow-registry` de chaque run, captures `docs/captures/mlflow_*.png` |
+| 8 | Dashboard monitoring | `monitoring/` (Prometheus, alertes, Grafana), captures `docs/captures/grafana_dashboard.png`, `docs/captures/prometheus_alertes.png` |
+| 9 | Rapport | `docs/Rapport_MLOps_Impayes.pdf`, `docs/Rapport_MLOps_Impayes.docx` |
 
 ## Points à adapter après la première exécution sur les vraies données
 - Vérifier que `default_risk` est binaire (0/1) et lister les 15 colonnes (`python -m src.data`).

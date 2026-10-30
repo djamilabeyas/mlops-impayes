@@ -35,7 +35,22 @@ def _git_commit() -> str:
         return subprocess.check_output(["git", "rev-parse", "--short", "HEAD"],
                                        stderr=subprocess.DEVNULL).decode().strip()
     except Exception:
-        return "unknown"
+        pass
+    # sans exécutable git (conteneur Docker) : lecture directe du dossier .git
+    try:
+        git = Path(".git")
+        head = (git / "HEAD").read_text().strip()
+        if not head.startswith("ref:"):
+            return head[:7]
+        ref = head.split(" ", 1)[1]
+        if (git / ref).exists():
+            return (git / ref).read_text().strip()[:7]
+        for line in (git / "packed-refs").read_text().splitlines():
+            if line.endswith(" " + ref):
+                return line.split()[0][:7]
+    except Exception:
+        pass
+    return "unknown"
 
 def _data_hash(df: pd.DataFrame) -> str:
     return hashlib.md5(pd.util.hash_pandas_object(df, index=False).values.tobytes()).hexdigest()[:12]

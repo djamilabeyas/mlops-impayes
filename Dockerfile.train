@@ -1,0 +1,6 @@
+# Image « outils » : entraînement du modèle et serveur MLflow (le code est monté dans /app)
+FROM python:3.11-slim
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 MLFLOW_TRACKING_URI=sqlite:////app/mlflow.db
+COPY requirements-train.txt .
+RUN pip install --no-cache-dir --root-user-action=ignore -r requirements-train.txt

@@ -6,15 +6,16 @@ Industrialisation d'un modèle de classification des clients télécom à risque
 
 **Résultats** (jeu de test, 100 000 clients) : précision 0,496 · rappel 0,697 · F1 0,580 · AUC 0,746.
 
-## Démarrage rapide
+## Lancer le projet (Docker)
+
+Prérequis : Git, Docker Desktop démarré, Python 3 (uniquement pour le script de trafic).
 
 ```bash
-pip install -r requirements.txt
-dvc repro                             # prepare (ingestion + contrôles) puis train (entraînement, gate, MLflow)
-pytest -q                             # tests
-docker compose up -d --build          # API, MLflow, Prometheus, Grafana
-python scripts/generate_traffic.py    # trafic de démonstration vers l'API
-python scripts/export_registry.py     # export du registre MLflow -> registry/model_registry.json
+git clone https://github.com/djamilabeyas/mlops-impayes.git
+cd mlops-impayes
+docker compose run --rm train      # télécharge les données (Hugging Face), entraîne, enregistre dans MLflow
+docker compose up -d --build       # API, MLflow, Prometheus, Grafana
+python scripts/generate_traffic.py # trafic de démonstration vers l'API (alimente Grafana)
 ```
 
 | Service | Adresse |
@@ -24,6 +25,17 @@ python scripts/export_registry.py     # export du registre MLflow -> registry/mo
 | Grafana (dashboard) | http://localhost:3000 |
 | Prometheus (alertes) | http://localhost:9090/alerts |
 
+Arrêt : `docker compose down`. Après un nouvel entraînement : `docker compose up -d --build api`.
+
+## Développement local (sans Docker)
+
+```bash
+pip install -r requirements.txt
+dvc repro                          # prepare (ingestion + contrôles) puis train (entraînement, gate, MLflow)
+pytest -q                          # tests
+python scripts/export_registry.py  # export du registre MLflow -> registry/model_registry.json
+```
+
 ## Structure
 
 ```
@@ -32,6 +44,7 @@ notebooks/           01_exploration_entrainement.ipynb (exploration, entraîneme
 tests/               tests unitaires (entraînement, API, encodage de la cible, PSI, réentraînement)
 flows/               retrain_flow.py (Prefect : contrôle de dérive et réentraînement)
 scripts/             smoke_test.py, generate_traffic.py, export_registry.py
+Dockerfile           image de l'API ; Dockerfile.train : image d'entraînement et de MLflow
 monitoring/          prometheus.yml, alert_rules.yml, dashboard Grafana
 registry/            model_registry.json (export du registre MLflow)
 models/              metrics.json, meta.json

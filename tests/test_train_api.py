@@ -23,3 +23,14 @@ def test_cible_texte(df, params, tmp_path):
     res = train(d, params, track=False, out_dir=str(tmp_path))
     assert "customer_id" not in res["meta"]["features"]
     assert res["metrics"]["auc"] > 0.7
+
+
+def test_commit_sans_git(monkeypatch):
+    import subprocess
+    from src import train as t
+
+    def absent(*a, **k):
+        raise FileNotFoundError("git")
+    monkeypatch.delenv("GITHUB_SHA", raising=False)
+    monkeypatch.setattr(subprocess, "check_output", absent)
+    assert len(t._git_commit()) == 7

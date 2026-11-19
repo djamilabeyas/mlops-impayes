@@ -1,3 +1,4 @@
+import pandas as pd
 from fastapi.testclient import TestClient
 from src.train import train
 
@@ -34,3 +35,25 @@ def test_commit_sans_git(monkeypatch):
     monkeypatch.delenv("GITHUB_SHA", raising=False)
     monkeypatch.setattr(subprocess, "check_output", absent)
     assert len(t._git_commit()) == 7
+
+
+def test_interface_et_recherche_client(df, params, tmp_path, monkeypatch):
+    train(df, params, track=False, out_dir=str(tmp_path))
+    d = df.drop(columns=["default_risk"]).copy()
+    d.insert(0, "customer_id", [f"CUST{i}" for i in range(len(d))])
+    d["phone_number"] = "+234000"
+    d = pd.concat([d, d.iloc[[12]]])  # identifiant en double, comme dans le jeu réel
+    d.to_csv(tmp_path / "clients.csv", index=False)
+    monkeypatch.setenv("MODEL_PATH", str(tmp_path / "model.joblib"))
+    monkeypatch.setenv("PREDICTION_LOG", str(tmp_path / "log.jsonl"))
+    monkeypatch.setenv("CLIENTS_PATH", str(tmp_path / "clients.csv"))
+    from src.api import app
+    with TestClient(app) as c:
+        assert c.get("/ui").status_code == 200 and "risque" in c.get("/ui").text
+        r = c.get("/clients/cust12")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["customer_id"] == "CUST12" and 0 <= body["default_risk_score"] <= 1
+        assert body["risk"] in ("élevé", "faible") and "phone_number" not in body["profile"]
+        assert c.get("/clients/INCONNU").status_code == 404
+        assert "CUST12" in c.get("/clients", params={"q": "CUST12"}).json()

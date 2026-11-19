@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Risque d'impayé – Évaluation client</title>
+<style>
+  :root {
+    --ink: #1b2a41; --teal: #0e7c7b; --teal-soft: #e3f1f0; --coral: #e4572e; --coral-soft: #fdeae4;
+    --amber: #f2a541; --bg: #f4f7f8; --card: #ffffff; --line: #d6e0e3; --muted: #5c6b7a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Calibri, Arial, sans-serif; background: var(--bg); color: var(--ink); }
+  header { background: var(--ink); color: #fff; padding: 22px 16px; }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-family: Cambria, Georgia, serif; font-size: 24px; }
+  header p { margin: 4px 0 0; color: #b9cfd2; font-size: 14px; }
+  .status { font-size: 13px; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.1); white-space: nowrap; }
+  .status b { color: var(--amber); }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  main { padding: 24px 16px 40px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(27,42,65,.08); }
+  .tabs { display: flex; gap: 6px; margin-bottom: 16px; background: var(--bg); padding: 4px; border-radius: 10px; }
+  .tab { flex: 1; border: 0; background: transparent; padding: 9px; border-radius: 8px; font: inherit; font-weight: 600; color: var(--muted); cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(27,42,65,.12); }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 0 0 6px; }
+  input, select { width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+  input:focus, select:focus { outline: 2px solid var(--teal); outline-offset: 1px; border-color: var(--teal); }
+  .row { display: flex; gap: 8px; }
+  .btn { border: 0; background: var(--teal); color: #fff; font: inherit; font-weight: 600; padding: 10px 18px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+  .btn:hover { background: #0b6867; }
+  .btn:disabled { opacity: .6; cursor: wait; }
+  .hint { font-size: 13px; color: var(--muted); margin: 14px 0 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; color: var(--ink); }
+  .chip:hover { border-color: var(--teal); color: var(--teal); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .panel[hidden] { display: none; }
+  .empty { color: var(--muted); text-align: center; padding: 40px 10px; font-size: 15px; }
+  .verdict { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 10px; margin-bottom: 18px; }
+  .verdict.high { background: var(--coral-soft); }
+  .verdict.low { background: var(--teal-soft); }
+  .dot { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 24px; font-weight: 700; flex: none; }
+  .high .dot { background: var(--coral); } .low .dot { background: var(--teal); }
+  .verdict h2 { margin: 0; font-size: 20px; }
+  .verdict p { margin: 3px 0 0; font-size: 14px; color: var(--muted); }
+  .score-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .score-num { font-family: Cambria, Georgia, serif; font-size: 40px; font-weight: 700; }
+  .high .score-num, .score-num.high { color: var(--coral); } .score-num.low { color: var(--teal); }
+  .gauge { position: relative; height: 12px; border-radius: 999px; background: linear-gradient(90deg, var(--teal-soft), var(--coral-soft)); margin: 4px 0 6px; }
+  .gauge .fill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; }
+  .gauge .mark { position: absolute; top: -5px; width: 2px; height: 22px; background: var(--ink); left: 50%; }
+  .scale { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  dl { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin: 20px 0 0; }
+  dt { font-size: 12px; color: var(--muted); }
+  dd { margin: 2px 0 0; font-weight: 600; }
+  .meta { margin-top: 18px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
+  .error { background: var(--coral-soft); color: #8a2c12; padding: 12px; border-radius: 8px; font-size: 14px; }
+  footer { text-align: center; font-size: 12px; color: var(--muted); padding: 0 16px 24px; }
+  footer a { color: var(--teal); }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div>
+      <h1>Évaluation du risque d'impayé</h1>
+      <p>Recherchez un client ou saisissez un profil : le modèle calcule son score de risque.</p>
+    </div>
+    <div class="status" id="status">Connexion au modèle…</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="grid">
+    <section class="card" aria-label="Saisie">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-search" aria-selected="true" aria-controls="panel-search">Client existant</button>
+        <button class="tab" role="tab" id="tab-new" aria-selected="false" aria-controls="panel-new">Nouveau client</button>
+      </div>
+
+      <div class="panel" id="panel-search" role="tabpanel" aria-labelledby="tab-search">
+        <form id="search-form" autocomplete="off">
+          <label for="cid">Identifiant du client</label>
+          <div class="row">
+            <input id="cid" list="suggestions" placeholder="Ex. CUST1483551" required>
+            <button class="btn" type="submit">Évaluer</button>
+          </div>
+          <datalist id="suggestions"></datalist>
+        </form>
+        <p class="hint">Exemples de clients :</p>
+        <div class="chips">
+          <button class="chip" data-id="CUST1483551">CUST1483551</button>
+          <button class="chip" data-id="CUST2175540">CUST2175540</button>
+          <button class="chip" data-id="CUST3710704">CUST3710704</button>
+          <button class="chip" data-id="CUST3011621">CUST3011621</button>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-new" role="tabpanel" aria-labelledby="tab-new" hidden>
+        <form id="new-form">
+          <div class="form-grid">
+            <div><label for="f-operator">Opérateur</label>
+              <select id="f-operator" name="operator"><option>MTN</option><option>Airtel</option><option>Glo</option><option>9mobile</option></select></div>
+            <div><label for="f-account">Type de compte</label>
+              <select id="f-account" name="account_type"><option value="prepaid">Prépayé</option><option value="postpaid">Postpayé</option></select></div>
+            <div><label for="f-score">Score de crédit (300 à 1000)</label>
+              <input id="f-score" name="credit_score" type="number" min="300" max="1000" value="440" required></div>
+            <div><label for="f-rating">Notation de crédit</label>
+              <select id="f-rating" name="credit_rating"><option value="excellent">Excellente</option><option value="good">Bonne</option><option value="fair">Moyenne</option><option value="poor" selected>Faible</option></select></div>
+            <div><label for="f-tenure">Ancienneté (mois)</label>
+              <input id="f-tenure" name="tenure_months" type="number" min="0" max="240" value="32" required></div>
+            <div><label for="f-spend">Dépense mensuelle (NGN)</label>
+              <input id="f-spend" name="avg_monthly_spend_ngn" type="number" min="0" step="1" value="3240" required></div>
+            <div><label for="f-recharge">Recharges par mois</label>
+              <input id="f-recharge" name="recharge_frequency_per_month" type="number" min="0" max="60" value="11" required></div>
+            <div><label for="f-consistency">Régularité de paiement (0 à 1)</label>
+              <input id="f-consistency" name="payment_consistency_score" type="number" min="0" max="1" step="0.01" value="0.5" required></div>
+            <div><label for="f-late">Retards de paiement</label>
+              <input id="f-late" name="late_payment_count" type="number" min="0" max="30" value="2" required></div>
+            <div><label for="f-elig">Éligible au prêt</label>
+              <select id="f-elig" name="loan_eligibility"><option value="false" selected>Non</option><option value="true">Oui</option></select></div>
+            <div><label for="f-loan">Montant de prêt maximal (NGN)</label>
+              <input id="f-loan" name="max_loan_amount_ngn" type="number" min="0" step="1" value="0" required></div>
+          </div>
+          <button class="btn" type="submit">Évaluer ce profil</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="card" aria-live="polite" id="result">
+      <div class="empty">Le résultat de l'évaluation s'affichera ici.</div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  Aide à la décision · seuil de décision 0,5 · <a href="/docs">documentation de l'API</a>
+</footer>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const fmt = (x, d = 2) => Number(x).toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
+const LABELS = {
+  operator: "Opérateur", account_type: "Type de compte", credit_score: "Score de crédit", credit_rating: "Notation de crédit",
+  tenure_months: "Ancienneté", avg_monthly_spend_ngn: "Dépense mensuelle", recharge_frequency_per_month: "Recharges par mois",
+  payment_consistency_score: "Régularité de paiement", late_payment_count: "Retards de paiement",
+  loan_eligibility: "Éligible au prêt", max_loan_amount_ngn: "Prêt maximal",
+};
+const VALUES = { prepaid: "Prépayé", postpaid: "Postpayé", excellent: "Excellente", good: "Bonne", fair: "Moyenne", poor: "Faible", true: "Oui", false: "Non" };
+const show = (k, v) => {
+  if (v === null || v === undefined || v === "") return "–";
+  if (k === "tenure_months") return v + " mois";
+  if (k.endsWith("_ngn")) return Number(v).toLocaleString("fr-FR", { maximumFractionDigits: 0 }) + " NGN";
+  if (k === "payment_consistency_score") return fmt(v);
+  return VALUES[String(v)] ?? v;
+};
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function render(title, score, version, profile) {
+  const high = score >= 0.5, cls = high ? "high" : "low";
+  const color = high ? "var(--coral)" : "var(--teal)";
+  const items = Object.keys(LABELS).filter((k) => k in profile)
+    .map((k) => `<div><dt>${LABELS[k]}</dt><dd>${esc(show(k, profile[k]))}</dd></div>`).join("");
+  $("#result").innerHTML = `
+    <div class="verdict ${cls}">
+      <div class="dot" aria-hidden="true">${high ? "!" : "✓"}</div>
+      <div><h2>${high ? "Client à risque d'impayé" : "Client fiable"}</h2>
+      <p>${esc(title)}</p></div>
+    </div>
+    <div class="score-line"><span>Score de risque</span><span class="score-num ${cls}">${fmt(score)}</span></div>
+    <div class="gauge" role="img" aria-label="Score ${fmt(score)} sur 1, seuil 0,5">
+      <div class="fill" style="width:${Math.max(2, score * 100)}%;background:${color}"></div><div class="mark"></div>
+    </div>
+    <div class="scale"><span>0 · aucun risque</span><span>seuil 0,5</span><span>1 · risque maximal</span></div>
+    <dl>${items}</dl>
+    <div class="meta">Modèle version ${esc(version)} · ${high ? "Score ≥ 0,5 : impayé prévu" : "Score < 0,5 : paiement prévu"}</div>`;
+}
+function error(msg) { $("#result").innerHTML = `<div class="error">${esc(msg)}</div>`; }
+
+async function evaluateClient(id) {
+  id = id.trim().toUpperCase();
+  if (!id) return;
+  $("#cid").value = id;
+  try {
+    const r = await fetch("/clients/" + encodeURIComponent(id));
+    const d = await r.json();
+    if (!r.ok) return error(d.detail || "Erreur " + r.status);
+    render("Identifiant " + d.customer_id, d.default_risk_score, d.model_version, d.profile);
+  } catch { error("L'API ne répond pas."); }
+}
+
+$("#search-form").addEventListener("submit", (e) => { e.preventDefault(); evaluateClient($("#cid").value); });
+document.querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => evaluateClient(b.dataset.id)));
+
+let timer;
+$("#cid").addEventListener("input", (e) => {
+  clearTimeout(timer);
+  const q = e.target.value.trim();
+  if (q.length < 3) return;
+  timer = setTimeout(async () => {
+    try {
+      const ids = await (await fetch("/clients?q=" + encodeURIComponent(q))).json();
+      $("#suggestions").innerHTML = Array.isArray(ids) ? ids.map((i) => `<option value="${esc(i)}">`).join("") : "";
+    } catch {}
+  }, 250);
+});
+
+$("#new-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = {};
+  for (const [k, v] of new FormData(e.target)) {
+    f[k] = k === "loan_eligibility" ? v === "true" : (["operator", "account_type", "credit_rating"].includes(k) ? v : Number(v));
+  }
+  try {
+    const r = await fetch("/predict", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ features: f }) });
+    const d = await r.json();
+    if (!r.ok) return error(d.detail ? JSON.stringify(d.detail) : "Erreur " + r.status);
+    render("Profil saisi manuellement", d.default_risk_score, d.model_version, f);
+  } catch { error("L'API ne répond pas."); }
+});
+
+document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach((x) => x.setAttribute("aria-selected", x === t));
+  $("#panel-search").hidden = t.id !== "tab-search";
+  $("#panel-new").hidden = t.id !== "tab-new";
+}));
+
+fetch("/health").then((r) => r.json()).then((h) => {
+  $("#status").innerHTML = h.model_loaded ? `Modèle <b>version ${esc(h.model_version)}</b> en ligne` : "Modèle non chargé";
+}).catch(() => { $("#status").textContent = "API injoignable"; });
+</script>
+</body>
+</html>

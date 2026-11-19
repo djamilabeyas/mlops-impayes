@@ -20,6 +20,7 @@ python scripts/generate_traffic.py # trafic de démonstration vers l'API (alimen
 
 | Service | Adresse |
 |---|---|
+| **Interface utilisateur** (recherche d'un client, score de risque) | http://localhost:8000/ui |
 | API (documentation OpenAPI) | http://localhost:8000/docs |
 | MLflow (expériences et registre) | http://localhost:5000 |
 | Grafana (dashboard) | http://localhost:3000 |
@@ -39,7 +40,7 @@ python scripts/export_registry.py  # export du registre MLflow -> registry/model
 ## Structure
 
 ```
-src/                 data.py (ingestion, contrôles), train.py (entraînement, évaluation, MLflow), api.py (FastAPI), monitoring/drift.py (PSI)
+src/                 data.py (ingestion, contrôles), train.py (entraînement, évaluation, MLflow), api.py (FastAPI), static/index.html (interface), monitoring/drift.py (PSI)
 notebooks/           01_exploration_entrainement.ipynb (exploration, entraînement, évaluation, dérive)
 tests/               tests unitaires (entraînement, API, encodage de la cible, PSI, réentraînement)
 flows/               retrain_flow.py (Prefect : contrôle de dérive et réentraînement)
@@ -61,7 +62,7 @@ params.yaml          paramètres (données, modèle, gate, seuils de monitoring)
 | 1 | Dépôt Git structuré | `src/`, `notebooks/`, `tests/`, `flows/`, `scripts/`, `monitoring/`, `registry/`, `docs/` |
 | 2 | Données versionnées | `dvc.yaml`, `dvc.lock` (empreintes des données, du code et des paramètres), `params.yaml` ; prétraitements décrits dans `notebooks/01_exploration_entrainement.ipynb` (section 4) et le rapport |
 | 3 | Modèle et métriques | `models/metrics.json`, `models/meta.json`, notebook (matrice de confusion, ROC), artefact `model` de chaque run GitHub Actions, runs MLflow |
-| 4 | API de serving | `src/api.py` (`/predict`, `/health`, `/metrics`, `/drift/check`, `/docs`) |
+| 4 | API de serving | `src/api.py` (`/predict`, `/clients/{id}`, `/health`, `/metrics`, `/drift/check`, `/docs`) et interface `/ui` |
 | 5 | Image Docker | `Dockerfile`, `docker-compose.yml`, image `ghcr.io/djamilabeyas/mlops-impayes` |
 | 6 | Pipeline CI/CD/CT | `.github/workflows/ci-cd.yml`, `.github/workflows/ct.yml`, `flows/retrain_flow.py` |
 | 7 | Registre de modèles | MLflow Model Registry `default-risk-model` (alias `staging` / `production`), `registry/model_registry.json`, artefact `mlflow-registry` de chaque run, captures `docs/captures/mlflow_*.png` |

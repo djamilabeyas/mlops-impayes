@@ -54,7 +54,7 @@ def main(base: str, reference_csv: str) -> None:
     assert status == 200 and 0 <= pred["default_risk_score"] <= 1, pred
     print("OK /predict :", pred)
 
-    for path in ("/openapi.json", "/docs", "/metrics"):
+    for path in ("/openapi.json", "/docs", "/metrics", "/ui"):
         status, _ = get(f"{base}{path}")
         assert status == 200, f"{path} -> {status}"
         print(f"OK {path}")

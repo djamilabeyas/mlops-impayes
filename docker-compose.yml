@@ -12,6 +12,10 @@ services:
     build: .
     ports: ["8000:8000"]
     restart: unless-stopped
+    environment:
+      CLIENTS_PATH: /app/data/raw/telecom.csv   # fichier clients consulté par l'interface /ui
+    volumes:
+      - ./data:/app/data:ro
   mlflow:
     build: {context: ., dockerfile: Dockerfile.train}
     image: mlops-impayes-tools
